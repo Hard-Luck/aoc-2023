@@ -91,22 +91,9 @@ const part2 = (rawInput) => {
   const input = parseInput(rawInput)
     .split("\n")
     .map((x) => x.split(" "));
-  const withLetters = input.map((x) => {
-    return [
-      x[0].replace(/\./g, "-").replace(/\?/g, "p"),
-      x[1].split(",").map(Number),
-    ];
-  });
-  const allCombos = withLetters.map((x) => fiveTimes(x));
-  console.table(allCombos);
-  //console.log(getTotal("???#??.??????.??#..", [4, 3]));
-  let total = 0;
-  for (let i = 0; i < allCombos.length; i++) {
-    allCombos[i][0] = allCombos[i][0].replace(/$\.*/g, "");
-    total += getTotal(allCombos[i][0], allCombos[i][1]);
-    console.log(allCombos[i], total);
-  }
-  return total;
+  console.log(input);
+
+  return;
 };
 
 function countRemainingTags(string) {
