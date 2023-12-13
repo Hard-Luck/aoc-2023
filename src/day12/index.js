@@ -20,8 +20,6 @@ function getCachedCombination(hashTags, string) {
 }
 function getCachedCanPlace(hashTags, string) {
   if (cacheCanPlace?.[hashTags]?.[string]) {
-    console.count("canPlace");
-
     return cacheCanPlace?.[hashTags]?.[string];
   }
   return null;
