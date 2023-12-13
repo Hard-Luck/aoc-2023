@@ -1,11 +1,4 @@
-## get input
-## five times both
-## cache
-## check permutations including can place
-## sum them
 from functools import cache
-
-import re
 
 
 @cache
@@ -13,65 +6,55 @@ def can_place(string, number_hashtags):
     if number_hashtags > len(string):
         return False
     for i in range(number_hashtags):
-        if string[i] != "#" and string[i] != "p":
+        if not (string[i] == "#" or string == "?"):
             return False
     return True
 
 
 @cache
 def fiveTimesInput(string):
-    return string * 5
+    return "".join([string, "?", string, "?", string, "?", string, "?", string])
 
 
-@cache
-def fiveTimesInstructions(arrayOfNum: list):
-    instruction = []
-    for i in range(5):
-        instruction = instruction + arrayOfNum
-    return instruction
+def fiveTimesInstructions(string):
+    return "".join([string, ",", string, ",", string, ",", string, ",", string])
 
 
 @cache
 def countRemainingTags(string):
-    regex = re.compile(r"#")
-    return len(regex.findall(string))
+    return string.count("#")
 
 
 @cache
 def splitInstructions(string):
-    line = string.split(" ")
-    orders = line[1].split(",")
-    locs = line[0]
-    return locs, [int(x) for x in orders]
+    locs, orders = string.split(" ")
+    return locs, [int(x) for x in orders.split(",")]
 
 
 @cache
-def getTotal(input, position=0):
-    locs, orders = splitInstructions(input)
-    tagsRemaining = sum(orders)
-    if countRemainingTags(locs) > tagsRemaining:
+def get_total(input):
+    m, orders = splitInstructions(input)
+    if not orders or not m:
         return 0
+    hashtags = orders[0]
+    if hashtags > len(m):
+        return 0
+
+
+def part2():
+    input = []
+    with open("input.txt") as f:
+        for line in f:
+            input.append(line.replace("\n", ""))
+    formatted = []
+    for i in input:
+        formatted.append(i.split(" "))
+    enlarged = [
+        " ".join([fiveTimesInput(x[0]), fiveTimesInstructions(x[1])]) for x in formatted
+    ]
     total = 0
-    numOfHashTags = orders[position]
-    if len(locs) == 0:
-        return 0
-    if position == len(orders) - 1:
-        for i in range(len(locs)):
-            if can_place(locs[i:], numOfHashTags):
-                if countRemainingTags(locs[i + numOfHashTags :] == 0):
-                    total += 1
-
-            if locs[i] == "#":
-                return total
-
-    else:
-        if can_place(locs, numOfHashTags):
-            total += getTotal(input[numOfHashTags + 1 :], position + 1)
-        i = 1
-        if locs[0] == "#":
-            return total
-        total += getTotal(input[i:], position)
-    return total
+    enlarged.sort(key=lambda x: len(x[0]))
+    print(get_total("??? 1"))
 
 
-print(getTotal("p###pppppppp 3,2,1"))
+part2()
