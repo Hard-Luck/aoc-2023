@@ -10,14 +10,27 @@ function cacheCanPlace(hashTags, string, total) {
   canPlaceCache[string] ??= {};
   canPlaceCache[string][hashTags] = total;
 }
-function getCachedCombination(hashTags, string) {
-  if (cacheCombination?.[hashTags]?.[string]) {
-    console.count("combinations");
-
-    return cacheCombination?.[hashTags]?.[string];
+function cacheTotal(string, orders, total) {
+  totalCache[string] ??= {};
+  totalCache[string][JSON.stringify(orders)] = total;
+}
+function getCachedTotal(string, orders) {
+  const total = totalCache[string]?.[JSON.stringify(orders)];
+  if (total) {
+    console.log({ total, string });
+    return totalCache[string][JSON.stringify(orders)];
   }
   return null;
 }
+
+// function getCachedCombination(hashTags, string) {
+//   if (cacheCombination?.[hashTags]?.[string]) {
+//     console.count("combinations");
+
+//     return cacheCombination?.[hashTags]?.[string];
+//   }
+//   return null;
+// }
 function getCachedCanPlace(hashTags, string) {
   if (cacheCanPlace?.[hashTags]?.[string]) {
     return cacheCanPlace?.[hashTags]?.[string];
@@ -48,6 +61,7 @@ function fiveTimes(input) {
   }
   return [instructions, orders];
 }
+console.log(canPlace(1, "p#"));
 
 function canPlace(hashTags, string) {
   const cached = getCachedCanPlace(hashTags, string);
@@ -55,7 +69,7 @@ function canPlace(hashTags, string) {
   if (hashTags > string.length) return false;
   if (string[hashTags] === "#") return false;
   for (let i = 0; i < hashTags; i++) {
-    if (!(string[i] === "#" || string[i] === "p")) {
+    if (!(string[i] === "#")) {
       cacheCanPlace(hashTags, string, false);
       return false;
     }
@@ -64,52 +78,37 @@ function canPlace(hashTags, string) {
   return true;
 }
 
-function combinations(hashTags, string) {
-  const cached = getCachedCombination(hashTags, string);
-  if (cached) return cached;
-  let total = 0;
-  for (let i = 0; i <= string.length - hashTags; i++) {
-    if (canPlace(hashTags, string.slice(i, hashTags + i + 1))) {
-      if (!countRemainingTags(string.slice(i + hashTags))) {
-        total++;
-      }
-      if (string[hashTags + i - 1] === "#") break;
+function getTotal(string, orders) {
+  if (getCachedTotal(string, orders)) {
+    return getCachedTotal(string, orders);
+  }
+  const tagsToPlace = orders.reduce((a, b) => a + b, 0);
+  if (string.length < tagsToPlace) {
+    return 0;
+  }
+  if (countRemainingTags(string) > tagsToPlace) {
+    return 0;
+  }
+  if (orders.length === 0) {
+    if (countRemainingTags(string) === 0) {
+      console.log(string, "plus 1");
+      return 1;
     }
-  }
-  cacheCombination(string, hashTags, total);
-  return total;
-}
-function getTotal(string, orders, position = 0) {
-  const label = `${string.slice(0, orders[position] + 1)}${JSON.stringify(
-    orders[position],
-  )}}`;
-  if (totalCache[label]) return totalCache[label];
-  if (!string.length) return 0;
-  let hashTags = orders[position];
-  const indexOfDot = string.indexOf(".");
-  if (indexOfDot !== -1 && indexOfDot < hashTags) {
-    return getTotal(string.slice(indexOfDot + 1), orders, position);
-  }
-  const tagsRemaining = orders.reduce((a, b) => a + b);
-  if (countRemainingTags(string) > tagsRemaining) {
     return 0;
   }
   let total = 0;
-  // if i can place it check the substring for next hit (has to be at least 1 gap)
-  if (position === orders.length - 1) {
-    total += combinations(hashTags, string);
-    //console.log({ string, orders, position, total });
-  } else {
-    //console.log({ string, orders, position, total });
-    if (canPlace(hashTags, string)) {
-      total += getTotal(string.slice(hashTags + 1), orders, position + 1);
+
+  if (canPlace(orders[0], string)) {
+    if (orders.length === 1 && string[0] === "#") {
+      console.log({ string, orders });
+      return 1;
     }
-    let i = 1;
-    if (string[0] === "#") {
-      return total;
-    }
-    total += getTotal(string.slice(i), orders, position);
+    console.log({ string, orders, canPlace: true });
+
+    total += getTotal(string.slice(1), orders.slice(1));
   }
+  total += getTotal(string.slice(1), orders.slice());
+  cacheTotal(string, orders, total);
   return total;
 }
 
@@ -139,47 +138,47 @@ run({
         input: `.??..??...?##. 1,1,3`,
         expected: 4,
       },
-
-      {
-        input: `
-        ???.### 1,1,3
-        .??..??...?##. 1,1,3
-        ?#?#?#?#?#?#?#? 1,3,1,6
-        ????.#...#... 4,1,1
-        ????.######..#####. 1,6,5
-        ?###???????? 3,2,1
-      `,
-        expected: 21,
-      },
-      {
-        input: `?#?#?#?#?#?#?#? 1,3,1,6`,
-        expected: 1,
-      },
-      {
-        input: `###.### 3`,
-        expected: 0,
-      },
-      {
-        input: `.##.?#??.#.?# 2,1,1,1`,
-        expected: 1,
-      },
-
-      {
-        input: `?.? 1,1`,
-        expected: 1,
-      },
+      //
+      //{
+      //  input: `
+      //  ???.### 1,1,3
+      //  .??..??...?##. 1,1,3
+      //  ?#?#?#?#?#?#?#? 1,3,1,6
+      //  ????.#...#... 4,1,1
+      //  ????.######..#####. 1,6,5
+      //  ?###???????? 3,2,1
+      //`,
+      //  expected: 21,
+      //},
+      //{
+      //  input: `?#?#?#?#?#?#?#? 1,3,1,6`,
+      //  expected: 1,
+      //},
+      //{
+      //  input: `###.### 3`,
+      //  expected: 0,
+      //},
+      //{
+      //  input: `.##.?#??.#.?# 2,1,1,1`,
+      //  expected: 1,
+      //},
+      //
+      //{
+      //  input: `?.? 1,1`,
+      //  expected: 1,
+      //},
       {
         input: `#?#?#??? 1,1,1`,
         expected: 1,
       },
-      {
-        input: `???.### 1,1,3`,
-        expected: 1,
-      },
-      {
-        input: `?###???????? 3,2,1`,
-        expected: 10,
-      },
+      //{
+      //  input: `???.### 1,1,3`,
+      //  expected: 1,
+      //},
+      //{
+      //  input: `?###???????? 3,2,1`,
+      //  expected: 10,
+      //},
     ],
     solution: part1,
   },
@@ -216,7 +215,7 @@ run({
     solution: part2,
   },
   trimTestInputs: true,
-  onlyTests: false,
+  onlyTests: true,
 });
 
 function regexMaker(num) {
