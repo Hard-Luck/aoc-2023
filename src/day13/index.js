@@ -1,4 +1,5 @@
 import run from "aocrunner";
+import { rotateInput } from "../utils";
 
 const parseInput = (rawInput) => rawInput;
 function replaceAt(string, index, replacement) {
@@ -53,18 +54,7 @@ function sumMirrored(grid) {
   }
   return 0;
 }
-function rotateInput(grid) {
-  const newGrid = [];
-  for (const _ in grid[0]) {
-    newGrid.push("");
-  }
-  for (let i = 0; i < grid.length; i++) {
-    for (let j = 0; j < grid[0].length; j++) {
-      newGrid[j] += grid[i][j];
-    }
-  }
-  return newGrid;
-}
+
 function checkMirrorLine(grid, mirrorLine, part) {
   let top, bottom;
   if (mirrorLine <= grid.length / 2) {

@@ -9,7 +9,7 @@ function addToTotalCache(string, orders, total) {
 function getCachedTotal(string, orders) {
   const total = totalCache?.[string]?.[orders];
   if (total !== undefined) {
-    console.count("hit");
+    //console.count("hit");
     return total;
   }
 }
@@ -47,9 +47,7 @@ function getTotal(string, orders) {
   let total = 0;
   let numOfHashTags = orders[0];
   if (!string.length) return 0;
-  // if i can place it check the substring for next hit (has to be at least 1 gap)
   if (0 === orders.length - 1) {
-    //console.log(string);
     for (let i = 0; i < string.length; i++) {
       if (canPlace(numOfHashTags, string.slice(i))) {
         if (!countRemainingTags(string.slice(i + numOfHashTags))) {
@@ -95,12 +93,6 @@ const part2 = (rawInput) => {
   });
   let total = 0;
   withLetters.sort((a, b) => a[0].length - b[0].length);
-  console.log(
-    getTotal(
-      "?###???#.#?#?..?.????###???#.#?#?..?.????###???#.#?#?..?.????###???#.#?#?..?.????###???#.#?#?..?.??",
-      withLetters[0][1],
-    ),
-  );
 
   return withLetters.reduce((a, x) => a + getTotal(x[0], x[1]), 0);
 };
