@@ -18,6 +18,25 @@ function getGridSize(instructions) {
   });
   return { height, width };
 }
+function getRevisedGridSize(instructions) {
+  let height = { max: 0, min: 0 };
+  let width = { max: 0, min: 0 };
+  let currentHeight = 0;
+  let currentWidth = 0;
+  instructions.forEach(([d, _, hex]) => {
+    console.log(hex);
+    const v = parseInt(hex.slice(2, -2), 16);
+    if (hex[hex.length - 2] === "0") currentWidth += v;
+    if (hex[hex.length - 2] === "1") currentWidth -= v;
+    if (hex[hex.length - 2] === "2") currentHeight += v;
+    if (hex[hex.length - 2] === "3") currentHeight -= v;
+    height.max = Math.max(currentHeight, height.max);
+    height.min = Math.min(currentHeight, height.min);
+    width.max = Math.max(currentWidth, width.max);
+    width.min = Math.min(currentWidth, width.min);
+  });
+  return { height, width };
+}
 function getNeighbours([y, x], grid) {
   const n = [];
   for (let i = -1; i <= 1; i++) {
@@ -36,7 +55,6 @@ function floodFill(grid, point, fill = false) {
   const neighbours = [point];
   while (neighbours.length) {
     const [y, x] = neighbours.pop();
-    console.log({ y, x });
     const n = getNeighbours([y, x], grid);
     n.length && neighbours.push(...n);
     grid[y][x] = grid[y][x] === true ? true : fill;
@@ -57,9 +75,9 @@ const part1 = (rawInput) => {
     .split("\n")
     .map((x) => x.split(" "))
     .map(([a, b, c]) => [a, +b, c]);
-  console.table(input);
+  //console.table(input);
   const { height, width } = getGridSize(input);
-  console.log({ height, width });
+  //console.log({ height, width });
   const grid = Array.from({ length: height.max - height.min + 1 }, (_) => {
     return Array.from({ length: width.max - width.min + 1 }, () => {
       return ".";
@@ -76,12 +94,12 @@ const part1 = (rawInput) => {
       visited.push([...currentLocation]);
     }
   });
-  console.table(visited);
+  //console.table(visited);
   visited.forEach(([y, x]) => {
     grid[y][x] = true;
   });
   fillFromOutside(grid);
-  console.table(grid.reverse());
+  //console.table(grid.reverse());
   return grid.reduce((a, c) => {
     return (
       a +
@@ -93,11 +111,59 @@ const part1 = (rawInput) => {
 };
 
 const part2 = (rawInput) => {
-  const input = parseInput(rawInput);
-
-  return;
+  let counter = { false: 0 };
+  const input = parseInput(rawInput)
+    .split("\n")
+    .map((x) => x.split(" "))
+    .map(([_, __, c]) => c);
+  //console.table(input);
+  const { height, width } = getRevisedGridSize(input);
+  const di = {
+    0: "R",
+    1: "D",
+    2: "L",
+    3: "U",
+  };
+  let total = 0;
+  let currentLocation = [-height.min, -width.min];
+  const vertexes = [[-height.min, -width.min]];
+  console.log("here");
+  input.forEach((a) => {
+    const v = parseInt(a.slice(2, -2), 16);
+    const directionIndex = a[a.length - 2];
+    const d = di[directionIndex];
+    total += v;
+    console.log({ d, v });
+    if (d === "R") currentLocation[1] -= v;
+    if (d === "L") currentLocation[1] += v;
+    if (d === "U") currentLocation[0] += v;
+    if (d === "D") currentLocation[0] -= v;
+    vertexes.push([...currentLocation]);
+  });
+  //console.table(visited);
+  console.log(vertexes);
+  //console.table(grid.reverse());
+  return 1 + shoelace(vertexes) + total / 2;
 };
-
+function shoelace(vertexes) {
+  let left = 0;
+  let right = 0;
+  for (let i = 0; i < vertexes.length - 1; i++) {
+    const [x1, y1] = vertexes[i];
+    const [x2, y2] = vertexes[i + 1];
+    const leftAddition = x1 * y2;
+    const rightAddition = x2 * y1;
+    left += leftAddition;
+    right += rightAddition;
+  }
+  const [x1, y1] = vertexes.at(-1);
+  const [x2, y2] = vertexes.at(0);
+  const leftAddition = x1 * y2;
+  const rightAddition = x2 * y1;
+  left += leftAddition;
+  right += rightAddition;
+  return Math.abs(left - right) / 2;
+}
 run({
   part1: {
     tests: [
@@ -125,10 +191,25 @@ run({
   },
   part2: {
     tests: [
-      // {
-      //   input: ``,
-      //   expected: "",
-      // },
+      {
+        input: `
+          R 6 (#70c710)
+          D 5 (#0dc571)
+          L 2 (#5713f0)
+          D 2 (#d2c081)
+          R 2 (#59c680)
+          D 2 (#411b91)
+          L 5 (#8ceee2)
+          U 2 (#caa173)
+          L 1 (#1b58a2)
+          U 2 (#caa171)
+          R 2 (#7807d2)
+          U 3 (#a77fa3)
+          L 2 (#015232)
+          U 2 (#7a21e3)
+      `,
+        expected: 952408144115,
+      },
     ],
     solution: part2,
   },
