@@ -69,8 +69,6 @@ const part2 = (rawInput) => {
   const powers = cubesNeeded.map(powerOfSet);
   const answer = powers.reduce((acc, curr) => acc + curr);
   return answer;
-
-  return;
 };
 
 run({

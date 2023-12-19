@@ -15,7 +15,6 @@ const part1 = (rawInput) => {
       return winningNumbers.includes(number);
     });
     if (winners.length) {
-      console.log(winners.length);
       total += 2 ** (winners.length - 1);
     }
   });
