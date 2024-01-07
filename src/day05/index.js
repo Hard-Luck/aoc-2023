@@ -20,7 +20,6 @@ function parseMappings(input) {
       formattedData[heading].sort((a, b) => a[1] - b[1]);
     }
   });
-  console.log(formattedData);
   return formattedData;
 }
 function mapsOnto(currentState, nextMap) {
@@ -68,46 +67,45 @@ const part2 = (rawInput) => {
     "temperature-to-humidity map",
     "humidity-to-location map",
   ];
-  let lowest = Infinity;
   const seeds = mappings["seeds"].map(Number);
-  const seedRanges = [];
+  let seedRanges = [];
   for (let i = 0; i < seeds.length; i += 2) {
     seedRanges.push([seeds[i], seeds[i] + seeds[i + 1], 1]);
   }
-  for (const pair of seedRanges) {
-    const thisGo = [[...pair]];
-    while (thisGo.length) {
-      const [min, max, mapIndex] = thisGo.pop();
-      const newRanges = [];
-      for (const range of mappings[mapOrder[mapIndex]]) {
-        const [_, sMin, sRange] = range.map(Number);
-        console.log(sMin + sRange);
-        if (min < sMin && max < sMin) {
-          continue;
-        } else if (min >= sMin && max < sMin + sRange) {
-          newRanges.push([min, max, mapIndex]);
-        } else if (min < sMin && max < sMin + sRange) {
-          newRanges.push([sMin, max, mapIndex]);
-        } else if (min < sMin && max > sMin + sRange) {
-          newRanges.push([sMin, sMin + sRange, mapIndex]);
-        }
-        // both in range
-        // just min in range
-      }
-      for (const range of newRanges) {
-        const x = mapsOnto(range[0], mappings[mapOrder[range[2]]]);
-        const y = mapsOnto(range[1], mappings[mapOrder[range[2]]]);
-        if (range[2] === mapOrder.length) {
-          lowest = Math.min(x, lowest);
-          console.log({ lowest });
+  const ranges = mapOrder.map((x) => mappings[x].map((y) => y.map(Number)));
+  for (const range of ranges) {
+    range.sort((a, b) => {
+      return a[1] + b[1];
+    });
+  }
+  for (const x of ranges) {
+    const newSeeds = [];
+    while (seedRanges.length) {
+      let matched = false;
+      const [min, max] = seedRanges.pop();
+      for (const [a, b, c] of x) {
+        if (min < b + c) {
+          const newMin = Math.max(min, b);
+          const newMax = Math.min(max, b + c);
+          if (max < b + c) {
+            newSeeds.push([newMin - b + a, a + newMax - b]);
+          } else {
+            newSeeds.push([newMin - b + a, a + c]);
+            seedRanges.push([b + c, max]);
+          }
+          matched = true;
           break;
-        } else {
-          newRanges.push([x, y, mapIndex + 1]);
         }
+      }
+      if (!matched) {
+        newSeeds.push([min, max]);
       }
     }
+    seedRanges = newSeeds;
   }
-  return lowest;
+  seedRanges.sort((a, b) => a[0] - b[0]);
+  console.log(seedRanges);
+  return seedRanges[0][0];
 };
 
 run({
@@ -157,7 +155,7 @@ run({
         humidity-to-location map:
         60 56 37
         56 93 4`,
-        expected: 20,
+        expected: 46,
       },
     ],
     solution: part2,
